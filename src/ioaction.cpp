@@ -1,21 +1,26 @@
 #include "ioaction.h"
 
-namespace IOAction {
-
-	void copyto(const char *source, const char *destination) {
+	/**
+	*Copies a file from source to destination
+	**/
+	void IOAction::copyto(const char *source, const char *destination) {
 
 		std::ifstream input(source, std::ios::binary);
 
 		std::ofstream output(destination, std::ios::binary | std::ios::trunc);
 
-		output << input.rdbuf(); 
+		output << input.rdbuf();
 
 		output.close();
 
 		input.close();
 	}
+	/**
+	*Gets number of bytes of a file
+	**/
+	unsigned long IOAction::getByte(const char *path) {
 
-	void getByte(const char *path, unsigned long *bytes) {
+		unsigned long bytes = 0;
 
 		std::ifstream input(path, std::ios::binary);
 
@@ -23,24 +28,25 @@ namespace IOAction {
 
 			input.seekg(0, std::ios::end);
 
-			*bytes = input.tellg();
+			bytes = input.tellg();
 
 			input.close();
+		}
 
-		} else
-			*bytes = 0;
+			return bytes;
 	}
 
-	void load_folder(const char *path, std::vector<std::string> *list_file) {
-		
+//Change to Higor's function
+	void IOAction::load_folder(const char *path, std::vector<std::string> *list_file) {
+
 		DIR *directory;
-	    
+
 	    struct dirent *entry;
-	    
-	    if(directory = opendir(path)){
-	        
-	        while(entry = readdir(directory)){
-	        	
+
+	    if((directory = opendir(path))){
+
+	        while((entry = readdir(directory))){
+
 	        	if(strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
 	            	list_file->push_back(entry->d_name);
 	        }
@@ -48,8 +54,8 @@ namespace IOAction {
 	        closedir(directory);
 	    }
 	}
-
-	void read_file(const char *path, char **destination) {
+//Change to read the file just once
+	void IOAction::read_file(const char *path, char **destination) {
 
 		std::ifstream input;
 
@@ -62,14 +68,17 @@ namespace IOAction {
 			while(getline(input, line)) buffer += line + '\n';
 
 			input.close();
-		
+
 			*destination = new char[buffer.size()];
 
 			strcpy(*destination, buffer.c_str());
-		} 
-	}
-
-	void write_file(const char *path, const char *data) {
+		}
+  }
+/**
+*Writes a data to the file erasing if it's not empty and creating
+*if it doesn't exist
+**/
+	void IOAction::write_file(const char *path, const char *data) {
 
 		std::ofstream output;
 
@@ -79,4 +88,3 @@ namespace IOAction {
 
 		output.close();
 	}
-}
