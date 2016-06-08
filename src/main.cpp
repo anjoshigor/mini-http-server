@@ -3,9 +3,9 @@
 #include "socket.h"
 #include "http.h"
 #include <vector>
-#define PATTERN "GET HTTP/1.1" //must have a GET and a HTTP/1.1 in this order
-
 using std::string;
+
+#define  PATTERN "GET HTTP/1.1" //must have a GET and a HTTP/1.1 in this order
 
 
 void handle_client(Socket* socket, long client){
@@ -40,7 +40,14 @@ int main(int argc, char const *argv[])
 
 	LogClass& v = LogClass::makeInstance("log.txt");
 	//creating server socket
+
+	#ifdef PORT
+	Socket socket {PORT};
+	#else
 	Socket socket {8080};
+	#endif
+
+
 	socket.createSocket();
 	socket.bindSocket();
 	socket.listenSocket();

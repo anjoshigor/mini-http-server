@@ -14,8 +14,8 @@
 
 namespace http{
 
-  std::string NOT_FOUND = "HTTP/1.1 404 Not Found\nDate: "+static_cast<const std::string>(__DATE__)+" "+static_cast<const std::string>(__TIME__)+" GMT"+"\nServer: Apache/2.2.14 (Win32)\nContent-Length: 0\nContent-Type: UNDEFINED\nConnection: Closed\n";
-  std::string NOT_IN_PATTERN = "HTTP/1.1 400 Bad Command\nDate: "+static_cast<const std::string>(__DATE__)+" "+static_cast<const std::string>(__TIME__)+" GMT"+"\nServer: Apache/2.2.14 (Win32)\nContent-Length: 0\nContent-Type: UNDEFINED\nConnection: Closed\n";
+  std::string NOT_FOUND = "HTTP/1.1 404 Not Found\nDate: "+static_cast<const std::string>(__DATE__)+" "+static_cast<const std::string>(__TIME__)+" GMT"+"\nServer: Apache/2.2.14 (Win32)\nContent-Length: \nContent-Type: utf8\n\n";
+  std::string NOT_IN_PATTERN = "HTTP/1.1 400 Bad Command\nDate: "+static_cast<const std::string>(__DATE__)+" "+static_cast<const std::string>(__TIME__)+" GMT"+"\nServer: Apache/2.2.14 (Win32)\nContent-Length: 0\nContent-Type: UNDEFINED\nConnection: Closed\n\n";
   std::string OK = "\n\nHTTP/1.1 200 OK \nDate: " + static_cast<const std::string>(__DATE__)+ " " +static_cast<const std::string>(__TIME__)+" GMT \nServer : Custom/server \nContent-Length: \nContent-Type: utf8\n\n";
 
   std::string parse_http(std::string buffer, std::string pattern){
@@ -34,18 +34,18 @@ namespace http{
 
       std::clog<<"Checking requested file: "<<incoming_vec[1]<<"..."<<std::endl;
       if(!check_file(incoming_vec[1], "../files"))
-        return  NOT_FOUND;
+        return  NOT_FOUND+return_file("/notfound.html", "../files");
 
       std::clog<<"File [OK]"<<std::endl;
 
-      return return_file(incoming_vec[1], "../files");
+      return OK+return_file(incoming_vec[1], "../files");
   }
 
   std::string return_file(std::string filename, std::string filepath){
     std::ifstream source((filepath+filename).c_str());
     std::string outcoming( (std::istreambuf_iterator<char>(source)),
                            (std::istreambuf_iterator<char>()) );
-    return OK+outcoming;
+    return outcoming;
   }
 
   bool check_file(std::string filename, std::string filepath){

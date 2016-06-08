@@ -1,5 +1,6 @@
 CC = g++
 FLAGS = -std=c++11 -pthread -g3 -O2 -Wall -pedantic
+PORT = 8080
 
 .PHONY: clean
 
@@ -10,13 +11,13 @@ LogClass.o: LogClass.cpp
 	$(CC) LogClass.cpp $(FLAGS) -c
 
 main.o: main.cpp
-	$(CC) main.cpp $(FLAGS) -c
+	$(CC) main.cpp -D PORT=$(PORT) $(FLAGS) -c
 
 socket.o: socket.cpp
 	$(CC) socket.cpp $(FLAGS) -c
 
 main: LogClass.o main.o socket.o http.o
-	$(CC) LogClass.o main.o socket.o http.o $(FLAGS) -o main
+	$(CC) LogClass.o main.o socket.o http.o  $(FLAGS) -o main
 
 clean:
 	rm *.o main
