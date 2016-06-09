@@ -18,8 +18,8 @@ namespace http {
   bool check_file(std::string filename, std::string filepath);
   std::string return_file(std::string filename, std::string filepath);
   std::vector<std::string> split_string(std::string input);
-
-
+  std::string return_mime(std::string filename);
+  std::string get_current_date();
 }
 
 #endif //HTTP_H

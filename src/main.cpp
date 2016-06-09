@@ -17,18 +17,16 @@ void handle_client(Socket* socket, long client){
 	LogClass& logFile = LogClass::makeInstance("itdoesntmatter");
 
 	socket->readSocket(client, &incoming);
+	std::string info = "Client IP: "+socket->get_client_ip()+"\n"+http::get_current_date();
+	logFile.WriterLog(info+incoming);
 
-	logFile.WriterLog(incoming+socket->get_client_ip());
-
-	std::clog<<"++++++++++++++++++++++++++++++++"<<std::endl;
 	std::clog<<"Request:\n"<<incoming<<std::endl;
-	std::clog<<"++++++++++++++++++++++++++++++++"<<std::endl;
 
 	outcoming = http::parse_http(incoming, PATTERN);
 	socket->writeSocket(client, outcoming);
-	std::clog<<"++++++++++++++++++++++++++++++++"<<std::endl;
+
 	std::clog<<"Reponse:\n"<<outcoming<<std::endl;
-	std::clog<<"++++++++++++++++++++++++++++++++"<<std::endl;
+
 
 	close(client);
 	std::clog<<"Client handled [OK]"<<std::endl;

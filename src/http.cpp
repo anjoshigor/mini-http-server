@@ -1,7 +1,4 @@
 #include "http.h"
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <sstream>
@@ -9,14 +6,17 @@
 #include <vector>
 #include <iostream>
 #include <iterator>
-#include <dirent.h>
+#include <map>
+#include <chrono>
+#include <ctime>
+
 
 
 namespace http{
 
-  std::string NOT_FOUND = "HTTP/1.1 404 Not Found\nDate: "+static_cast<const std::string>(__DATE__)+" "+static_cast<const std::string>(__TIME__)+" GMT"+"\nServer: Apache/2.2.14 (Win32)\nContent-Length: \nContent-Type: utf8\n\n";
-  std::string NOT_IN_PATTERN = "HTTP/1.1 400 Bad Command\nDate: "+static_cast<const std::string>(__DATE__)+" "+static_cast<const std::string>(__TIME__)+" GMT"+"\nServer: Apache/2.2.14 (Win32)\nContent-Length: 0\nContent-Type: UNDEFINED\nConnection: Closed\n\n";
-  std::string OK = "\n\nHTTP/1.1 200 OK \nDate: " + static_cast<const std::string>(__DATE__)+ " " +static_cast<const std::string>(__TIME__)+" GMT \nServer : Custom/server \nContent-Length: \nContent-Type: utf8\n\n";
+  std::string NOT_FOUND = "HTTP/1.1 404 Not Found\n";
+  std::string NOT_IN_PATTERN = "HTTP/1.1 400 Bad Command\n";
+  std::string OK = "\n\nHTTP/1.1 200 OK \n";
 
   std::string parse_http(std::string buffer, std::string pattern){
       std::clog<<"Parsing request..."<<std::endl;
@@ -24,21 +24,27 @@ namespace http{
       std::vector<std::string> incoming_vec = split_string(buffer);//converts to
       std::vector<std::string> pattern_vec = split_string(pattern);//vec of strings
 
-      std::clog<<"Checking pattern..."<<std::endl;
-      if(!check_pattern(incoming_vec, pattern_vec))
-        return  NOT_IN_PATTERN;
+      std::string DATE = get_current_date();
 
+      std::clog<<"Checking pattern..."<<std::endl;
+      if(!check_pattern(incoming_vec, pattern_vec)){
+        return  NOT_IN_PATTERN+DATE+"Server: FulaninhoServidor\nContent-Length: \nContent-Type: utf8\nConnection: Closed\n\n";
+      }
       std::clog<<"Pattern [OK]"<<std::endl;
 
-
-
       std::clog<<"Checking requested file: "<<incoming_vec[1]<<"..."<<std::endl;
-      if(!check_file(incoming_vec[1], "../files"))
-        return  NOT_FOUND+return_file("/notfound.html", "../files");
+      if(!check_file(incoming_vec[1], "../files")){
+
+        std::string MIME = return_mime(incoming_vec[1]);
+
+        return  NOT_FOUND+DATE+"Server: FulaninhoServidor\nContent-Length: \nContent-Type: "+MIME+"Connection: Closed\n\n"+return_file("/notfound.html", "../files");
+      }
 
       std::clog<<"File [OK]"<<std::endl;
-
-      return OK+return_file(incoming_vec[1], "../files");
+      std::string MIME = return_mime(incoming_vec[1]);
+      std::string ANSWER = return_file(incoming_vec[1], "../files");
+      std::string SIZE = std::to_string(ANSWER.size());
+      return OK+DATE+"Server: FulaninhoServidor\nContent-Length: "+SIZE+"\nContent-Type: "+MIME+"Connection: Closed\n\n"+ANSWER;
   }
 
   std::string return_file(std::string filename, std::string filepath){
@@ -46,6 +52,52 @@ namespace http{
     std::string outcoming( (std::istreambuf_iterator<char>(source)),
                            (std::istreambuf_iterator<char>()) );
     return outcoming;
+  }
+
+  std::string get_current_date(){
+    std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::string TIME(std::ctime(&end_time));
+    std::string DATE = "Date: "+TIME;
+    return DATE;
+  }
+
+  std:: string return_mime(std::string filename){
+    std::size_t found = filename.find_last_of(".");
+    std::string MIME = "utf8\n";
+
+    enum StringValue {wrong, jpg, png, html};
+    std::map<std::string, StringValue> mapStringValues;
+    mapStringValues["html"] = html;
+    mapStringValues["css"] = html;
+    mapStringValues["jpg"] = jpg;
+    mapStringValues["jpeg"] = jpg;
+    mapStringValues["png"] = png;
+
+
+      if(found){
+      std::string TYPE = filename.substr(found+1);
+
+        switch (mapStringValues[TYPE]) {
+          case html:
+          MIME = "text/html; charset=iso-8859-1\n";
+          break;
+
+          case png:
+          MIME = "image/png\n";
+          break;
+
+          case jpg:
+          MIME = "image/jpeg\n";
+          break;
+
+          default:
+          break;
+        }
+
+      }
+
+    return MIME;
   }
 
   bool check_file(std::string filename, std::string filepath){
