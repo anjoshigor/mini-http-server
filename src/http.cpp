@@ -28,7 +28,7 @@ namespace http{
 
       std::clog<<"Checking pattern..."<<std::endl;
       if(!check_pattern(incoming_vec, pattern_vec)){
-        return  NOT_IN_PATTERN+DATE+"Server: FulaninhoServidor\nContent-Length: \nContent-Type: utf8\nConnection: Closed\n\n";
+        return  NOT_IN_PATTERN+DATE+"Server: FulaninhoServidor\nContent-Length: \nContent-Type: utf8\nConnection: Closed\n\n"+return_file("/badrequest.html","../files");
       }
       std::clog<<"Pattern [OK]"<<std::endl;
 
@@ -66,13 +66,16 @@ namespace http{
     std::size_t found = filename.find_last_of(".");
     std::string MIME = "utf8\n";
 
-    enum StringValue {wrong, jpg, png, html};
+    enum StringValue {wrong, jpg, png, css, pdf, html, mp3, mp4};
     std::map<std::string, StringValue> mapStringValues;
+    mapStringValues["mp3"] = mp3;
+    mapStringValues["mp4"] = mp4;
     mapStringValues["html"] = html;
-    mapStringValues["css"] = html;
+    mapStringValues["css"] = css;
     mapStringValues["jpg"] = jpg;
     mapStringValues["jpeg"] = jpg;
     mapStringValues["png"] = png;
+    mapStringValues["pdf"] = pdf;
 
 
       if(found){
@@ -83,12 +86,28 @@ namespace http{
           MIME = "text/html; charset=iso-8859-1\n";
           break;
 
+          case pdf:
+          MIME = "application/pdf\n";
+          break;
+
+          case css:
+          MIME = "text/css\n";
+          break;
+
           case png:
           MIME = "image/png\n";
           break;
 
           case jpg:
           MIME = "image/jpeg\n";
+          break;
+
+          case mp3:
+          MIME = "audio/mp3\n";
+          break;
+
+          case mp4:
+          MIME = "video/mp4\n";
           break;
 
           default:
