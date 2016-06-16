@@ -5,7 +5,7 @@
 #include <vector>
 using std::string;
 
-#define  PATTERN "GET HTTP/1.1" //must have a GET and a HTTP/1.1 in this order
+#define  PATTERN "GET HTTP/1.1 Host: Accept:" //must have a GET and a HTTP/1.1 in this order
 
 
 void handle_client(Socket* socket, long client){
@@ -41,8 +41,10 @@ int main(int argc, char const *argv[])
 
 	#ifdef PORT
 	Socket socket {PORT};
+	std::clog<<"listening to port "<<PORT<<std::endl;
 	#else
 	Socket socket {8080};
+	std::clog<<"listening to port 8080"<<std::endl;
 	#endif
 
 

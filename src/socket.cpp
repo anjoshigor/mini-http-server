@@ -21,7 +21,7 @@ void Socket::bindSocket(){
 }
 
 void Socket::listenSocket(){
-	std::clog<<"Lisntening..."<<std::endl;
+	std::clog<<"Listening..."<<std::endl;
 	int flag = listen(server_socket, 20);
 
 	if(flag){
@@ -36,7 +36,6 @@ void Socket::createSocket(){
 }
 
 long Socket::acceptSocket(){
-	std::clog<<"Accept socket"<<std::endl;
 	socklen_t size = sizeof(connected_client);
 	long client_port = accept(server_socket,(struct sockaddr *)&connected_client,&size);
 	return client_port;
