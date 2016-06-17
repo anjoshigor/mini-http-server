@@ -1,59 +1,72 @@
 #include "socket.h"
 
-Socket::Socket(const int port): server_socket(0){
-	server.sin_family = AF_INET;
-	server.sin_port = htons(port);
-	server.sin_addr.s_addr = INADDR_ANY;
-	bzero(&(server.sin_zero), 8);
+Socket::Socket(unsigned int port):
+				address{AF_INET, htons(port), (INADDR_ANY), 0}
+{
+	server = socket(AF_INET, SOCK_STREAM, 0);
+	if(server == -1)
+		throw std::runtime_error("Error socket!");
+} 
+
+Socket::~Socket() { close(); }
+
+int Socket::accept(void) {
+	socklen_t size = sizeof(address_client);
+	int acc = ::accept(server, reinterpret_cast<struct sockaddr*>(&address_client), 
+					   &size);
+	return acc;
 }
 
-Socket::~Socket(){
-	close(server_socket);
+void Socket::bind(void) const {
+	int err = ::bind(server, reinterpret_cast<const struct sockaddr*> (&address),
+					sizeof(address));
+	if(err)
+		throw std::runtime_error("Error bind!");  
 }
 
-void Socket::bindSocket(){
-	int flag = bind(server_socket, reinterpret_cast<struct sockaddr*> (&server), sizeof(server));
+void Socket::close(void) {
+	int err = ::close(server);
 
-	if(flag){
-		std::cerr<<"Bind Error !"<<std::endl;
-		exit(1);
-	}
+	if(err == -1)
+		throw std::runtime_error("Error close socket!"); 	
 }
 
-void Socket::listenSocket(){
-	std::clog<<"Listening..."<<std::endl;
-	int flag = listen(server_socket, 20);
-
-	if(flag){
-		std::cerr<<"ListenError"<<std::endl;
-		exit(1);
-	}
+void Socket::connect(void) const {
+	int err = ::connect(server, reinterpret_cast<const struct sockaddr*>(&address), 
+					   sizeof(address));
+	if(err)
+		throw std::runtime_error("Error connect!"); 	
 }
 
-void Socket::createSocket(){
-	server_socket = socket(AF_INET,SOCK_STREAM,0);
-	std::clog<<"Socket Created"<<std::endl;
+std::string Socket::get_ip(void) const {
+	char* ip = inet_ntoa(address.sin_addr);
+	return ip;
 }
 
-long Socket::acceptSocket(){
-	socklen_t size = sizeof(connected_client);
-	long client_port = accept(server_socket,(struct sockaddr *)&connected_client,&size);
-	return client_port;
+std::string Socket::get_client_ip(void) const {
+	char* ip = inet_ntoa(address_client.sin_addr);
+	return ip;	
 }
 
-void Socket::readSocket(long client_description, std::string* buffer){
-	char tempbuffer[2096];
-	read(client_description, tempbuffer, sizeof(tempbuffer));
-	*buffer = tempbuffer;
+void Socket::listen(void) const {
+	int err = ::listen(server, 20);
+	if(err)
+		throw std::runtime_error("Socket inactive!");  		
 }
 
-void Socket::writeSocket(long client_description, std::string buffer){
-	write(client_description, &buffer[0], sizeof(char)*buffer.size());
+void Socket::receive(long description, std::string* buffer) {
+	char tmp[BYTES];
+	int err = read(description, tmp, BYTES);
+
+ 	if(err == -1)
+ 		throw std::runtime_error("Error receive!");
+
+ 	*buffer = tmp;
 }
 
-std::string Socket::get_client_ip(){
-	char* ip = inet_ntoa(connected_client.sin_addr);
-	std::string ip_client (ip);
+void Socket::send(long description, std::string& buffer) const {
+	int err = write(description, &buffer[0], buffer.length());
 
-	return ip_client;
+ 	if(err == -1)
+ 		throw std::runtime_error("Error send!"); 	
 }
